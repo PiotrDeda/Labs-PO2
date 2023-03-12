@@ -10,29 +10,26 @@ public class Main
 	{
 		EquationSet eq1 = new EquationSet(7, 2, 10, 3, 1.2, 20);
 		eq1.print();
-		if (eq1.result() != null)
-		{
-			double[] r1 = eq1.result();
-			System.out.println(r1[0] + " " + r1[1] + "\n");
-		}
+
+		double[] r1 = eq1.result();
+		if (r1 != null)
+			System.out.println(r1[0] + " " + r1[1]);
 		else
-		{
 			System.out.println("Nie ma lub nieskonczenie wiele rozwiazan!");
-		}
+
+		eq1.makePNG("eq1", 600, 600);
+
+		System.out.println();
 
 		EquationSet eq2 = new EquationSet(1, 0, 30, 0, -1, 20);
 		eq2.print();
-		if (eq2.result() != null)
-		{
-			double[] r2 = eq2.result();
-			System.out.println(r2[0] + " " + r2[1]);
-		}
-		else
-		{
-			System.out.println("Nie ma lub nieskonczenie wiele rozwiazan!");
-		}
 
-		eq1.makePNG("eq1", 600, 600);
+		double[] r2 = eq2.result();
+		if (r2 != null)
+			System.out.println(r2[0] + " " + r2[1]);
+		else
+			System.out.println("Nie ma lub nieskonczenie wiele rozwiazan!");
+
 		eq2.makePNG("eq2", 600, 600);
 	}
 }
@@ -58,31 +55,24 @@ class EquationSet
 		System.out.println(d + "x + " + e + "y = " + f);
 	}
 
-	public double determinantMain()
+	public double detMain()
 	{
 		return a * e - d * b;
 	}
 
-	public double determinantX()
+	public double detX()
 	{
 		return c * e - f * b;
 	}
 
-	public double determinantY()
+	public double detY()
 	{
 		return a * f - d * c;
 	}
 
 	public double[] result()
 	{
-		double w = determinantMain();
-		if (Math.abs(w) < eps)
-			return null;
-
-		double[] r = new double[2];
-		r[0] = determinantX() / w;
-		r[1] = determinantY() / w;
-		return r;
+		return Math.abs(detMain()) > eps ? new double[]{detX() / detMain(), detY() / detMain()} : null;
 	}
 
 	public void makePNG(String filename, int imageWidth, int imageHeight)
@@ -90,14 +80,14 @@ class EquationSet
 		BufferedImage myPicture = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = myPicture.createGraphics();
 
-		g.setColor(Color.BLACK);
-		g.drawLine(0, imageHeight / 2, imageWidth, imageHeight / 2);
-		g.drawLine(imageWidth / 2, 0, imageWidth / 2, imageHeight);
-		g.translate(imageWidth / 2, imageHeight / 2);
-		g.setStroke(new BasicStroke(2));
+		int halfWidth = imageWidth / 2;
+		int halfHeight = imageHeight / 2;
 
-		final int halfWidth = imageWidth / 2;
-		final int halfHeight = imageHeight / 2;
+		g.setColor(Color.BLACK);
+		g.drawLine(0, halfHeight, imageWidth, halfHeight);
+		g.drawLine(halfWidth, 0, halfWidth, imageHeight);
+		g.translate(halfWidth, halfHeight);
+		g.setStroke(new BasicStroke(2));
 
 		g.setColor(Color.GREEN);
 		drawEquation(g, halfWidth, halfHeight, a, b, c);
@@ -106,18 +96,16 @@ class EquationSet
 		drawEquation(g, halfWidth, halfHeight, d, e, f);
 
 		g.setColor(Color.RED);
-		if (result() != null)
-		{
-			double[] r = result();
+		double[] r = result();
+		if (r != null)
 			g.fillOval((int) r[0] - 4, (int) -r[1] - 4, 8, 8);
-		}
 
 		filename += ".png";
 		try
 		{
-			File outputFile = new File(filename);
-			ImageIO.write(myPicture, "png", outputFile);
-		} catch (IOException e)
+			ImageIO.write(myPicture, "png", new File(filename));
+		}
+		catch (IOException e)
 		{
 			System.out.println("I/O error while saving " + filename);
 		}
